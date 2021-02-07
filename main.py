@@ -38,7 +38,7 @@ def get_order_info_list(cookie_name, cookie_value):
 
 def get_order_content(cookie_name, cookie_value, order_id):
     orders_info_response = requests.get(f"https://www.vprok.ru/profile/orders/details/{order_id}/?type=online",
-                                        cookies={cookie_name: cookie_value})
+                                        cookies={cookie_name: cookie_value}, timeout=60)
     if orders_info_response.status_code != 200:
         logging.error(f"Can not get info for order {order_id}")
         return
@@ -46,6 +46,7 @@ def get_order_content(cookie_name, cookie_value, order_id):
 
 
 def process_oder(cookie_name, cookie_value, order_id):
+    logging.info(f"Starting process order {order_id}")
     order_info = get_order_content(cookie_name, cookie_value, order_id)
     if order_info is None:
         return
@@ -75,6 +76,7 @@ def save_to_file(content, filename):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     cookie_info = get_cookie()
     if cookie_info is None:
         exit()
