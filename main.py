@@ -14,12 +14,13 @@ def get_cookie():
         logging.critical("Can not work without perekrestok cookie. Please specify cookie in "
                          "environmental variable 'PEREKRESTOK_COOKIE_VALUE' and 'PEREKRESTOK_COOKIE_NAME'.")
         return
-    return (cookie_name, cookie_value)
+    return cookie_name, cookie_value
 
 
 def get_order_info_list(cookie_name, cookie_value):
     # Get orders list
-    orders_list_response = requests.get("https://www.vprok.ru/profile/orders/history", cookies={cookie_name: cookie_value})
+    orders_list_response = requests.get("https://www.vprok.ru/profile/orders/history",
+                                        cookies={cookie_name: cookie_value})
     if orders_list_response.status_code != 200:
         logging.error("Can not get orders list page. Maybe cookie is invalid.")
         return
