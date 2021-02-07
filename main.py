@@ -43,7 +43,7 @@ def get_order_info_list(cookie_name, cookie_value):
     if len(order_info_list) == 0:
         logging.error("Can not parse orders list page.")
         return
-    return order_info_list
+    return [{'id': order_object[0], 'date': order_object[1]} for order_object in order_info_list]
 
 
 def get_order_content(cookie_name, cookie_value, order_id):
@@ -72,9 +72,9 @@ if __name__ == "__main__":
     cookie_info = get_cookie()
     if cookie_info is None:
         exit()
-    order_id_list = get_order_id_list(cookie_info[0], cookie_info[1])
-    if order_id_list is None:
+    order_info_list = get_order_info_list(cookie_info[0], cookie_info[1])
+    if order_info_list is None:
         exit()
-    for order_id in order_id_list:
-        process_oder(cookie_info[0], cookie_info[1], order_id)
+    for order_object in order_info_list:
+        process_oder(cookie_info[0], cookie_info[1], order_object['id'])
 
