@@ -3,6 +3,7 @@ import requests
 import logging
 import os
 import re
+from bs4 import BeautifulSoup
 
 
 def get_cookie():
@@ -59,13 +60,23 @@ def process_oder(cookie_name, cookie_value, order_id):
     order_info = get_order_content(cookie_name, cookie_value, order_id)
     if order_info is None:
         return
-    product_re_pattern = 'data-owox-product-id=\"(?P<product_id>\d+)\"\s+data-owox-product-name=\"(?P<product_name>[^\"]+)\"[\S\s]+?data-cost=\"(?P<product_cost>[\d\.]+)\"'
-    product_list = re.findall(product_re_pattern, order_info)
-    if len(product_list) == 0:
-        logging.error(f"Can not parse order {order_id} to product list")
-        return
-    print (product_list)
-    return
+    product_list = []
+    try:
+        soup = BeautifulSoup(order_info, 'html.parser')
+        soup_li_list = soup.find_all('li')
+        for line in soup_li_list:
+            product_object = dict()
+            product_object['id'] = line["data-owox-product-id"]
+            product_object['title'] = line["data-owox-product-name"]
+            product_object['link'] = "https://www.vprok.ru" + line.a["href"]
+            product_object['img'] = line.a.img["src"]
+            product_object['price'] = line.find("div", "xf-order-item__info")["data-cost"]
+            product_object['amount'] = line.find("span", "xf-order-item__count-text").text.split(' ')[0]
+            product_object['amount_unit'] = line.find("span", "xf-order-item__count-text").text.split(' ')[1]
+            product_list.append(product_object)
+    except:
+        logging.error(f"Can not parse order {order_id} to product list", exc_info=True)
+    return product_list
 
 
 if __name__ == "__main__":
