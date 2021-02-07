@@ -55,6 +55,10 @@ def process_oder(cookie_name, cookie_value, order_id):
         soup = BeautifulSoup(order_info, 'html.parser')
         soup_li_list = soup.find_all('li')
         for line in soup_li_list:
+            if "xf-order-item-unavailable__item" in line["class"]:
+                continue
+            if "xf-order-item-replaced__item" in line["class"]:
+                continue
             product_object = dict()
             product_object['id'] = line["data-owox-product-id"]
             product_object['title'] = line["data-owox-product-name"]
