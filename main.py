@@ -17,19 +17,6 @@ def get_cookie():
     return (cookie_name, cookie_value)
 
 
-def get_order_id_list(cookie_name, cookie_value):
-    # Get orders list
-    orders_list_response = requests.get("https://www.vprok.ru/profile/orders/history", cookies={cookie_name: cookie_value})
-    if orders_list_response.status_code != 200:
-        logging.error("Can not get orders list page. Maybe cookie is invalid.")
-        return
-    order_id_list = re.findall("https://www\.vprok\.ru/profile/orders/status/(?P<order_id>\d+)", orders_list_response.text)
-    if len(order_id_list) == 0:
-        logging.error("Can not parse orders list page.")
-        return
-    return order_id_list
-
-
 def get_order_info_list(cookie_name, cookie_value):
     # Get orders list
     orders_list_response = requests.get("https://www.vprok.ru/profile/orders/history", cookies={cookie_name: cookie_value})
