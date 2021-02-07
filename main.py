@@ -3,6 +3,7 @@ import requests
 import logging
 import os
 import re
+import json
 from bs4 import BeautifulSoup
 
 
@@ -67,6 +68,12 @@ def process_oder(cookie_name, cookie_value, order_id):
     return product_list
 
 
+def save_to_file(content, filename):
+    fh = open(filename, 'w+')
+    fh.write(json.dumps(content))
+    fh.close()
+
+
 if __name__ == "__main__":
     cookie_info = get_cookie()
     if cookie_info is None:
@@ -74,6 +81,10 @@ if __name__ == "__main__":
     order_info_list = get_order_info_list(cookie_info[0], cookie_info[1])
     if order_info_list is None:
         exit()
+    all_product_list = []
     for order_object in order_info_list:
-        process_oder(cookie_info[0], cookie_info[1], order_object['id'])
-
+        product_list = process_oder(cookie_info[0], cookie_info[1], order_object['id'])
+        product_list = [{**product_object, "order_id": order_object['id'], "date": order_object['date']}
+                        for product_object in product_list]
+        all_product_list += product_list
+    save_to_file(all_product_list, 'exported_data.json')
