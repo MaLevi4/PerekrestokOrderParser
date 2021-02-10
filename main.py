@@ -73,10 +73,51 @@ def process_oder(cookie_name, cookie_value, order_id):
     return product_list
 
 
+def enrich_products_category(product_list):
+    logging.info(f"Starting enrichment of product list with {len(product_list)} entries")
+    product_category_dict = {}
+    if os.path.isfile('product_category_dict.json'):
+        product_category_dict = load_from_file('product_category_dict.json')
+        logging.info("Successfully loaded cached file with product to category relation")
+    for i in range(len(product_list)):
+        if i % 10 == 0:
+            logging.info(f"Already processed {i} of {len(product_list)} entries")
+        product = product_list[i]
+        product_id = product['id']
+        logging.debug(f"Starting enrichment for product {product_id}")
+        if product_id in product_category_dict:
+            product['category'] = product_category_dict[product_id]
+            continue
+        product_web_page_response = requests.get(product['link'], timeout=60)
+        if product_web_page_response.status_code != 200:
+            logging.error(f"Can not get web page for product {product_id}")
+            logging.info(f"Try to change web-site to 'zoo.vprok.ru' for product {product_id}")
+            modified_link = product['link'].replace('www.vprok.ru', 'zoo.vprok.ru')
+            product_web_page_response = requests.get(modified_link, timeout=60,
+                                                     headers={'User-Agent': 'My User Agent 1.0'})
+            if product_web_page_response.status_code != 200:
+                logging.error(f"Can not get web page for product {product_id} even after web-site replacement")
+                continue
+        category_tree = re.findall("<span itemprop=\"name\">(.+)</span>", product_web_page_response.text)
+        if len(category_tree) == 0:
+            logging.warning(f"could not get category for product {product_id}")
+        product_category_dict[product_id] = category_tree[-1]
+        product['category'] = product_category_dict[product_id]
+    logging.info(f"Enrichment successfully finished")
+    save_to_file(product_category_dict, 'product_category_dict.json')
+
+
 def save_to_file(content, filename):
     fh = open(filename, 'w+')
     fh.write(json.dumps(content))
     fh.close()
+
+
+def load_from_file(filename):
+    fh = open(filename, 'r')
+    content = json.loads(fh.read())
+    fh.close()
+    return content
 
 
 if __name__ == "__main__":
@@ -93,4 +134,5 @@ if __name__ == "__main__":
         product_list = [{**product_object, "order_id": order_object['id'], "date": order_object['date']}
                         for product_object in product_list]
         all_product_list += product_list
+    enrich_products_category(all_product_list)
     save_to_file(all_product_list, 'exported_data.json')
