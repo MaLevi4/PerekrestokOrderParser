@@ -1,1 +1,5 @@
-"# PerekrestokOrderParser" 
+# PerekrestokOrderParser
+
+Скрипт для получения статистической информации о ваших заказах в онлайн-магазине "Перекрёсток Впрок".
+
+### License: MIT
