@@ -98,6 +98,8 @@ def enrich_products_category(product_list):
             if product_web_page_response.status_code != 200:
                 logging.error(f"Can not get web page for product {product_id} even after web-site replacement")
                 continue
+            logging.info(f"Changing web-site to 'zoo.vprok.ru' was successful: updating link for product {product_id}")
+            product['link'] = modified_link
         category_tree = re.findall("<span itemprop=\"name\">(.+)</span>", product_web_page_response.text)
         if len(category_tree) == 0:
             logging.warning(f"could not get category for product {product_id}")
