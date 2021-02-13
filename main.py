@@ -103,7 +103,7 @@ def enrich_products_category(product_list):
         category_tree = re.findall("<span itemprop=\"name\">(.+)</span>", product_web_page_response.text)
         if len(category_tree) == 0:
             logging.warning(f"could not get category for product {product_id}")
-        product_category_dict[product_id] = category_tree[-1]
+        product_category_dict[product_id] = category_tree[-2] + " -> " + category_tree[-1]
         product['category'] = product_category_dict[product_id]
     logging.info(f"Enrichment successfully finished")
     save_to_file(product_category_dict, 'product_category_dict.json')
