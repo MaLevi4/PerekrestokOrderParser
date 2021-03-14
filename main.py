@@ -91,9 +91,11 @@ def enrich_products_category(product_list):
         product_category_dict = load_from_file('product_category_dict.json')
         logging.info("Successfully loaded cached file with product to category relation")
     for i in range(len(product_list)):
-        if i % 10 == 0:
+        if i % 100 == 0:
             logging.info(f"Already processed {i} of {len(product_list)} entries")
         product = product_list[i]
+        if 'category' in product:
+            continue
         product_id = product['id']
         logging.debug(f"Starting enrichment for product {product_id}")
         if product_id in product_category_dict:
@@ -127,13 +129,25 @@ def save_to_file(content, filename):
 
 
 def load_from_file(filename):
+    if not os.path.isfile(filename):
+        logging.info(f"There is no file '{filename}'. Empty array will be used.")
+        return []
     fh = open(filename, 'r')
     content = json.loads(fh.read())
     fh.close()
     return content
 
 
+def get_orders_from_product_list(product_list):
+    order_list = []
+    for product in product_list:
+        if product["order_id"] not in order_list:
+            order_list.append(product["order_id"])
+    return order_list
+
+
 if __name__ == "__main__":
+    result_filename = 'exported_data.json'
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     cookie_info = get_cookie()
     if cookie_info is None:
@@ -141,11 +155,16 @@ if __name__ == "__main__":
     order_info_list = get_order_info_list(cookie_info[0], cookie_info[1])
     if order_info_list is None:
         exit()
-    all_product_list = []
+    all_product_list = load_from_file(result_filename)
+    already_processed_order_list = get_orders_from_product_list(all_product_list)
+    logging.info(f"Found {len(order_info_list)} orders. "
+                 f"{len(already_processed_order_list)} of them are already processed.")
     for order_object in order_info_list:
+        if order_object['id'] in already_processed_order_list:
+            continue
         product_list = process_oder(cookie_info[0], cookie_info[1], order_object['id'])
         product_list = [{**product_object, "order_id": order_object['id'], "date": order_object['date']}
                         for product_object in product_list]
         all_product_list += product_list
     enrich_products_category(all_product_list)
-    save_to_file(all_product_list, 'exported_data.json')
+    save_to_file(all_product_list, result_filename)
