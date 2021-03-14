@@ -2,19 +2,30 @@
 import requests
 import logging
 import os
+import sys
 import re
 import json
 from bs4 import BeautifulSoup
 
 
 def get_cookie():
-    # Get cookie from environment
+    # Try to get cookie from environment
     cookie_value = os.environ.get('PEREKRESTOK_COOKIE_VALUE')
     cookie_name = os.environ.get('PEREKRESTOK_COOKIE_NAME')
-    if cookie_value is None or cookie_name is None:
+    if cookie_value is not None and cookie_name is not None:
+        return cookie_name, cookie_value
+    logging.info("Perekrestok cookie is not found in environmental variables 'PEREKRESTOK_COOKIE_VALUE' and "
+                 "'PEREKRESTOK_COOKIE_NAME'. Looking for command line arguments.")
+
+    # Try to get cookie from command line
+    if len(sys.argv) != 3:
         logging.critical("Can not work without perekrestok cookie. Please specify cookie in "
-                         "environmental variable 'PEREKRESTOK_COOKIE_VALUE' and 'PEREKRESTOK_COOKIE_NAME'.")
+                         "environmental variable 'PEREKRESTOK_COOKIE_NAME' and 'PEREKRESTOK_COOKIE_VALUE'. "
+                         "Or you can specify cookie name and cookie value as first and second command line arguments.")
         return
+
+    cookie_name = str(sys.argv[1])
+    cookie_value = str(sys.argv[2])
     return cookie_name, cookie_value
 
 
