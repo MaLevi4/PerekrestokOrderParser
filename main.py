@@ -128,6 +128,22 @@ def save_to_file(content, filename):
     fh.close()
 
 
+def update_js_file(content, filename='js/app.js'):
+    if not os.path.isfile(filename):
+        logging.warning(f"There is no js file '{filename}'. Data will not be saved for web using.")
+        return
+    fh = open(filename, 'r')
+    js_content_lines = fh.readlines()
+    fh.close()
+
+    js_line = '        ctrl.exportedData = ' + json.dumps(content) + ';\n'
+    js_content_lines[14] = js_line
+    fh = open(filename, 'w')
+    fh.writelines(js_content_lines)
+    fh.close()
+    logging.info("JS file was successfully updated with new data.")
+
+
 def load_from_file(filename):
     if not os.path.isfile(filename):
         logging.info(f"There is no file '{filename}'. Empty array will be used.")
@@ -168,3 +184,4 @@ if __name__ == "__main__":
         all_product_list += product_list
     enrich_products_category(all_product_list)
     save_to_file(all_product_list, result_filename)
+    update_js_file(all_product_list)
