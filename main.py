@@ -32,7 +32,8 @@ def get_cookie():
 def get_order_info_list(cookie_name, cookie_value):
     # Get orders list
     orders_list_response = requests.get("https://www.vprok.ru/profile/orders/history",
-                                        cookies={cookie_name: cookie_value})
+                                        cookies={cookie_name: cookie_value},
+                                        headers={'User-Agent': 'My User Agent 1.0'})
     if orders_list_response.status_code != 200:
         logging.error("Can not get orders list page. Maybe cookie is invalid.")
         return
@@ -49,7 +50,8 @@ def get_order_info_list(cookie_name, cookie_value):
 
 def get_order_content(cookie_name, cookie_value, order_id):
     orders_info_response = requests.get(f"https://www.vprok.ru/profile/orders/details/{order_id}/?type=online",
-                                        cookies={cookie_name: cookie_value}, timeout=60)
+                                        cookies={cookie_name: cookie_value}, timeout=60,
+                                        headers={'User-Agent': 'My User Agent 1.0'})
     if orders_info_response.status_code != 200:
         logging.error(f"Can not get info for order {order_id}")
         return
@@ -101,7 +103,8 @@ def enrich_products_category(product_list):
         if product_id in product_category_dict:
             product['category'] = product_category_dict[product_id]
             continue
-        product_web_page_response = requests.get(product['link'], timeout=60)
+        product_web_page_response = requests.get(product['link'], timeout=60,
+                                                 headers={'User-Agent': 'My User Agent 1.0'})
         if product_web_page_response.status_code != 200:
             logging.error(f"Can not get web page for product {product_id}")
             logging.info(f"Try to change web-site to 'zoo.vprok.ru' for product {product_id}")
